@@ -10,6 +10,7 @@ import java.util.regex.Pattern;
 
 class Main{
 
+    //helper function to remove ' ' from array and remove leading whitespace from each num
     public static List<String> CleanseArray (List<String> arrayInput){
 
         List<String> fixedList = new ArrayList<String>() {};
@@ -20,16 +21,12 @@ class Main{
 
             if(item.charAt(0)==' ') {
                 item = item.substring(1);
-
             }
 
             fixedList.add(item);
-            
         }      
         }
-
         return(fixedList);
-
     }
 
 
@@ -38,11 +35,10 @@ class Main{
         HashMap<Integer,Integer> lineTracker = new HashMap<>();
         lineTracker.put(1,1);
 
-
         try{   
 
-            //total points counter
-            int totalpoints = 0;
+            //total reps counter
+            int total_reps = 0;
 
             //filereader stuff
             FileReader reader = new FileReader("inputtext.txt");
@@ -55,7 +51,7 @@ class Main{
                 String[] lineColonSplit = line.split(":");
                 line = lineColonSplit[1].strip();
 
-                //regex
+                //regex to get card num
                 Pattern pattern = Pattern.compile("Card\\s+(\\d+)");
                 Matcher matcher = pattern.matcher(lineColonSplit[0]);
                 
@@ -64,16 +60,18 @@ class Main{
                     card_num = Integer.parseInt(matcher.group(1));
                 }
 
+                //grab amounts we need to loop for each scratch card
                 int reps = 0;
-                if (lineTracker.get(card_num) == null){
-                    reps = 1;
+                if (!lineTracker.containsKey(card_num)){
+                    lineTracker.put(card_num,1);
                 }
-                else {
-                    reps = lineTracker.get(card_num);
-                }
-    
+                reps = lineTracker.get(card_num);
+                
+                //keep track of how many reps we have done = how many scratch cards
+                total_reps+=reps;
 
-                for (int i=0; i<reps; i++) {
+                //loop amount we got from dict
+                for (int i=0; i<reps; i++) { // changed from reps+1, was too many loops
 
                     String[] line_pipe_split = line.split("\\|");
                     String WinningNumbers = line_pipe_split[0].strip();
@@ -89,31 +87,29 @@ class Main{
 
                     //fix parsing with whitespaces and empty chars
                     myList = CleanseArray(myList);
-                    winningList = CleanseArray(winningList);            
+                    winningList = CleanseArray(winningList);    
 
-                    int wins = 0;
-
+                    //how many matches for each scratch card?
+                    int matches = 0;
                     for (String winningnum : winningList) {
                         if (myList.contains(winningnum)) {
-                            wins++;    
+                            matches++;    
                         }
                     }
-
                     
-                    //find
-                    totalpoints+=wins;
-
+                    //add amount of loops required for next cards to dict
                     int existing_val = 0;
-                    for (int winamount = 1; winamount<wins+1; winamount++){
+                    for (int winamount = 1; winamount<matches+1; winamount++){
 
                         int next_index = card_num+winamount;
-
-                        if (lineTracker.get(next_index) == null){
+                
+                        if (!lineTracker.containsKey(next_index)){
                             lineTracker.put(next_index,1);
                         }
                         else {
-                            existing_val = lineTracker.get(card_num);
+                            existing_val = lineTracker.get(next_index);
                             lineTracker.put(next_index,existing_val+1);
+                            
                         }
 
                     }
@@ -122,7 +118,9 @@ class Main{
 
                 };
 
-            System.out.println(totalpoints);
+           
+            System.out.println(lineTracker);
+            System.out.println(total_reps);
 
             bufferedReader.close();
 
@@ -131,10 +129,9 @@ class Main{
         catch (IOException e){
             System.out.println(e);
         }
-
-
-
 }
 }
 
-// 27454 correct
+// 2093 too low
+
+// maybe 3418379
